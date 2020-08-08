@@ -43,7 +43,31 @@ data = load_data(10000)
 hour= st.sidebar.slider('hour', 0, 23, 10)
 data = data[data[DATE_TIME].dt.hour == hour]
 
-'# Geo Data at %sh' % hour
-st.map(data)
 
-'data', data
+st.subheader("Geo data between %i:00 and %i:00" % (hour, (hour + 1) % 24))
+midpoint = (np.average(data["lat"]), np.average(data["lon"]))
+
+st.write(pdk.Deck(
+    map_style="mapbox://styles/mapbox/light-v9",
+    initial_view_state={
+        "latitude": midpoint[0],
+        "longitude": midpoint[1],
+        "zoom": 11,
+        "pitch": 50,
+    },
+    layers=[
+        pdk.Layer(
+            "HexagonLayer",
+            data=data,
+            get_position=["lon", "lat"],
+            radius=100,
+            elevation_scale=4,
+            elevation_range=[0, 1000],
+            pickable=True,
+            extruded=True,
+        ),
+    ],
+))
+
+if st.checkbox('Show raw data'):
+    '## Raw data at %sh' % hour, data
